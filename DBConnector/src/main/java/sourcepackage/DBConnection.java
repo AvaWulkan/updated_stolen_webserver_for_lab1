@@ -26,10 +26,5 @@ public class DBConnection {
         return list;
     }
 
-    public static void main(String[] args) {
 
-        List<WebserverDbEntity> list = getPeopleFromDb();
-
-        System.out.println(list);
-    }
 }
