@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "webserver_db", schema = "webserver_db", catalog = "")
+@Table(name = "webserver_db", schema = "webserver_db")
 public class WebserverDbEntity {
     private int id;
     private String name;
