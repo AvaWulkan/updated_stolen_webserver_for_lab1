@@ -161,6 +161,7 @@ public class Main {
         }
     }
 
+
     private static String readRequest(BufferedReader inputFromClient) throws IOException {
 
         String type = "";
