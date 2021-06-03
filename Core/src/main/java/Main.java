@@ -49,7 +49,7 @@ public class Main {
                     case "/cat.png":
                         sendImageResponse(outputToClient);
                         break;
-                    case "/dog.png":
+                    case "/dog.jpg":
                         sendDogImageResponse(outputToClient);
                         break;
                     default:
