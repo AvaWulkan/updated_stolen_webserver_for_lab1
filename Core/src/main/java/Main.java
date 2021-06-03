@@ -47,18 +47,26 @@ public class Main {
             if (type.equals("GET")) {
                 switch (url) {
                     case "/cat.png":
-                        sendImageResponse(outputToClient);
+                        sendImageResponse(outputToClient, type);
                         break;
                     case "/dog.jpg":
-                        sendDogImageResponse(outputToClient);
+                        sendDogImageResponse(outputToClient, type);
                         break;
                     default:
-                        sendJsonResponse(outputToClient);
+                        sendJsonResponse(outputToClient, type);
                         break;
                 }
             } else if (type.equals("HEAD")) {
                 switch (url) {
-
+                    case "/cat.png":
+                        sendImageResponse(outputToClient, type);
+                        break;
+                    case "/dog.jpg":
+                        sendDogImageResponse(outputToClient, type);
+                        break;
+                    default:
+                        sendJsonResponse(outputToClient, type);
+                        break;
                 }
 
             } else if (type.equals("POST")) {
@@ -76,7 +84,7 @@ public class Main {
         }
     }
 
-    private static void sendDogImageResponse(OutputStream outputToClient) throws IOException {
+    private static void sendDogImageResponse(OutputStream outputToClient, String type) throws IOException {
 
         String header = "";
         byte[] data = new byte[0];
@@ -97,13 +105,16 @@ public class Main {
             }
 
         }
+
         outputToClient.write(header.getBytes());
-        outputToClient.write(data);
-        outputToClient.flush();
+        if (type.equals("GET")) {
+            outputToClient.write(data);
+            outputToClient.flush();
+        }
     }
 
 
-    private static void sendImageResponse(OutputStream outputToClient) throws IOException {
+    private static void sendImageResponse(OutputStream outputToClient, String type) throws IOException {
 
         String header = "";
         byte[] data = new byte[0];
@@ -125,12 +136,13 @@ public class Main {
             }
         }
         outputToClient.write(header.getBytes());
-        outputToClient.write(data);
-        outputToClient.flush();
-
+        if (type.equals("GET")) {
+            outputToClient.write(data);
+            outputToClient.flush();
+        }
     }
 
-    private static void sendJsonResponse(OutputStream outputToClient) throws IOException {
+    private static void sendJsonResponse(OutputStream outputToClient, String type) throws IOException {
 
 
         List<WebserverDbEntity> persons = DBConnection.getPeopleFromDb();
@@ -143,9 +155,10 @@ public class Main {
         String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
 
         outputToClient.write(header.getBytes());
-        outputToClient.write(data);
-        outputToClient.flush();
-
+        if (type.equals("GET")) {
+            outputToClient.write(data);
+            outputToClient.flush();
+        }
     }
 
     private static String readRequest(BufferedReader inputFromClient) throws IOException {
