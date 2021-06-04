@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,7 +28,6 @@ public class Main {
             }
 
         } catch (IOException e) {
-
             e.printStackTrace();
         }
     }
@@ -44,7 +44,7 @@ public class Main {
             OutputStream outputToClient = client.getOutputStream();
 
 
-            if (type.equals("GET")) {
+            if (type.equals("GET")|| type.equals("HEAD")) {
                 switch (url) {
                     case "/cat.png":
                         sendImageResponse(outputToClient, type);
@@ -52,24 +52,20 @@ public class Main {
                     case "/dog.jpg":
                         sendDogImageResponse(outputToClient, type);
                         break;
-                    default:
-                        sendJsonResponse(outputToClient, type);
-                        break;
-                }
-            } else if (type.equals("HEAD")) {
-                switch (url) {
-                    case "/cat.png":
-                        sendImageResponse(outputToClient, type);
-                        break;
-                    case "/dog.jpg":
-                        sendDogImageResponse(outputToClient, type);
-                        break;
-                    default:
-                        sendJsonResponse(outputToClient, type);
-                        break;
-                }
 
-            } else if (type.equals("POST")) {
+                    case "/index.html":
+                        sendHtmlResponse(outputToClient, type);
+                        break;
+
+                    case "/Laboration1.pdf":
+                        sendPdfResponse(outputToClient,type);
+                        break;
+                    default:
+                        sendJsonResponse(outputToClient, type);
+                        break;
+                }
+            }
+             else if (type.equals("POST")) {
                 if (url.equals("/storage")) {
                     sendJsonResponse(outputToClient, type);
                 } else if (url.startsWith("/storage?id=")) {
@@ -94,7 +90,6 @@ public class Main {
                 }
             }
 
-
             inputFromClient.close();
             outputToClient.close();
             client.close();
@@ -102,6 +97,31 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void sendHtmlResponse(OutputStream outputToClient, String type) throws IOException {
+        String header = "";
+        byte[] data = new byte[0];
+
+        File f = Path.of("Core", "target", "web", "index.html").toFile();
+        if (!f.exists() && !f.isDirectory()) {
+            header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
+        } else {
+            try(FileInputStream fileInputStream = new FileInputStream(f)) {
+                data = new byte[(int) f.length()];
+                fileInputStream.read(data);
+                String contentType = Files.probeContentType(f.toPath());
+                header = "HTTP/1.1 200 OK\r\nContent-type: " + contentType + "\r\nContent-length: " + data.length + "\r\n\r\n";
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        outputToClient.write(header.getBytes());
+        if (type.equals("GET")) {
+            outputToClient.write(data);
+            outputToClient.flush();
+        }
+
     }
 
 
@@ -162,6 +182,33 @@ public class Main {
             outputToClient.flush();
         }
     }
+    private static void sendPdfResponse(OutputStream outputToClient, String type) throws IOException {
+
+        String header = "";
+        byte[] data = new byte[0];
+
+        Path f = Paths.get("Core/target/web/Laboration1.pdf");
+        if (f.getFileName() == null) {
+            header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
+        } else {
+
+            try (FileInputStream fileInputStream = new FileInputStream(String.valueOf(f))) {
+
+                data = Files.readAllBytes(f);
+                fileInputStream.read(data);
+                String contentType = Files.probeContentType(f);
+                header = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-length: " + data.length + "\r\n\r\n";
+            } catch (IOException e) {
+
+                e.printStackTrace();
+            }
+        }
+        outputToClient.write(header.getBytes());
+        if (type.equals("GET")) {
+            outputToClient.write(data);
+            outputToClient.flush();
+        }
+    }
 
     private static void sendJsonResponse(OutputStream outputToClient, String type) throws IOException {
 
@@ -205,5 +252,4 @@ public class Main {
             return type + " " + url;
         }
     }
-
 }
