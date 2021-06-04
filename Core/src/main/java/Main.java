@@ -70,10 +70,30 @@ public class Main {
                 }
 
             } else if (type.equals("POST")) {
-                switch (url) {
+                if (url.equals("/storage")) {
+                    sendJsonResponse(outputToClient, type);
+                } else if (url.startsWith("/storage?id=")) {
+
+
+                    String id = url.replaceAll("[^0-9.]", "");
+                    int dbid = Integer.parseInt(id);
+
+                    WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
+
+                    Gson gson = new Gson();
+                    String json = gson.toJson(person);
+                    System.out.println(json);
+
+                    byte[] data = json.getBytes(StandardCharsets.UTF_8);
+                    String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
+
+                    outputToClient.write(header.getBytes());
+                    outputToClient.write(data);
+                    outputToClient.flush();
 
                 }
             }
+
 
             inputFromClient.close();
             outputToClient.close();
@@ -83,6 +103,7 @@ public class Main {
             e.printStackTrace();
         }
     }
+
 
     private static void sendDogImageResponse(OutputStream outputToClient, String type) throws IOException {
 
