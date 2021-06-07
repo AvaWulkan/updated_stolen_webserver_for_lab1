@@ -66,7 +66,10 @@ public class Main {
                         break;
                 }
             } else if (type.equals("POST")) {
-                if (url.startsWith("/storage?id=")) {
+                if(url.equals("/storage")) {
+                    sendJsonResponse(outputToClient, type);
+                }
+                else if(url.startsWith("/storage?id=")) {
                     findById(url, outputToClient, type);
                 }
             } else {
@@ -99,6 +102,7 @@ public class Main {
 
         Gson gson = new Gson();
         String json = gson.toJson(person);
+        json = EncodingDecoding.encode(json);
         System.out.println(json);
 
         byte[] data = json.getBytes(StandardCharsets.UTF_8);
@@ -253,6 +257,7 @@ public class Main {
 
         while (true) {
             String line = inputFromClient.readLine();
+            line = EncodingDecoding.decode(line);
             if (line.startsWith("GET")) {
                 type = "GET";
                 url = line.split(" ")[1];
