@@ -44,7 +44,7 @@ public class Main {
             OutputStream outputToClient = client.getOutputStream();
 
 
-            if (type.equals("GET") || type.equals("HEAD")) {
+            if (type.equals("GET") || type.equals("HEAD") || type.equals("POST")) {
                 switch (url) {
                     case "/cat.png":
                         sendImageResponse(outputToClient, type);
@@ -58,24 +58,13 @@ public class Main {
                     case "/Laboration1.pdf":
                         sendPdfResponse(outputToClient, type);
                         break;
-
                     case "/storage":
                         sendJsonResponse(outputToClient, type);
-                        findById(url, outputToClient);
-
+                        if (url.startsWith("/storage?id="))  findById(url, outputToClient, type);
                         break;
                     default:
                         send404Response(outputToClient);
                         break;
-                }
-            } else if (type.equals("POST")) {
-                if (url.equals("/storage")) {
-                    sendJsonResponse(outputToClient, type);
-                } else if (url.startsWith("/storage?id=")) {
-
-
-                } else {
-                    send404Response(outputToClient);
                 }
             } else {
                 send404Response(outputToClient);
@@ -90,7 +79,7 @@ public class Main {
         }
     }
 
-    private static void findById(String url, OutputStream outputToClient) throws IOException {
+    private static void findById(String url, OutputStream outputToClient, String type) throws IOException {
         String id = url.replaceAll("[^0-9.]", "");
         int dbid = Integer.parseInt(id);
 
@@ -98,11 +87,10 @@ public class Main {
 
         String parameter = url.split("&")[1];
 
-        if (parameter.startsWith("changename")) {
+        if (type.equals("POST") && parameter.startsWith("changename")) {
             String name = parameter.split("=")[1];
 
             person = DBConnection.sendNameUpdate(dbid, name);
-
         }
 
         Gson gson = new Gson();
