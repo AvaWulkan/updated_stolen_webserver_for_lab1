@@ -44,7 +44,7 @@ public class Main {
             OutputStream outputToClient = client.getOutputStream();
 
 
-            if (type.equals("GET") || type.equals("HEAD") || type.equals("POST")) {
+            if (type.equals("GET") || type.equals("HEAD")) {
                 switch (url) {
                     case "/cat.png":
                         sendImageResponse(outputToClient, type);
@@ -60,11 +60,14 @@ public class Main {
                         break;
                     case "/storage":
                         sendJsonResponse(outputToClient, type);
-                        if (url.startsWith("/storage?id="))  findById(url, outputToClient, type);
                         break;
                     default:
                         send404Response(outputToClient);
                         break;
+                }
+            } else if (type.equals("POST")) {
+                if (url.startsWith("/storage?id=")) {
+                    findById(url, outputToClient, type);
                 }
             } else {
                 send404Response(outputToClient);
@@ -84,10 +87,11 @@ public class Main {
         int dbid = Integer.parseInt(id);
 
         WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
-
-        String parameter = url.split("&")[1];
-
-        if (type.equals("POST") && parameter.startsWith("changename")) {
+        String parameter = "";
+        if (url.contains("&")) {
+            parameter = url.split("&")[1];
+        }
+        if (parameter.startsWith("changename")) {
             String name = parameter.split("=")[1];
 
             person = DBConnection.sendNameUpdate(dbid, name);
