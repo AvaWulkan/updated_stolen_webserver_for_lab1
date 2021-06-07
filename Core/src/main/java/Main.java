@@ -44,7 +44,7 @@ public class Main {
             OutputStream outputToClient = client.getOutputStream();
 
 
-            if (type.equals("GET")|| type.equals("HEAD")) {
+            if (type.equals("GET") || type.equals("HEAD")) {
                 switch (url) {
                     case "/cat.png":
                         sendImageResponse(outputToClient, type);
@@ -52,20 +52,17 @@ public class Main {
                     case "/dog.jpg":
                         sendDogImageResponse(outputToClient, type);
                         break;
-
                     case "/index.html":
                         sendHtmlResponse(outputToClient, type);
                         break;
-
                     case "/Laboration1.pdf":
-                        sendPdfResponse(outputToClient,type);
+                        sendPdfResponse(outputToClient, type);
                         break;
                     default:
-                        sendJsonResponse(outputToClient, type);
+                        send404Response(outputToClient);
                         break;
                 }
-            }
-             else if (type.equals("POST")) {
+            } else if (type.equals("POST")) {
                 if (url.equals("/storage")) {
                     sendJsonResponse(outputToClient, type);
                 } else if (url.startsWith("/storage?id=")) {
@@ -75,6 +72,15 @@ public class Main {
                     int dbid = Integer.parseInt(id);
 
                     WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
+
+                    String parameter = url.split("&")[1];
+
+                    if (parameter.startsWith("changename")) {
+                        String name = parameter.split("=")[1];
+
+                        person = DBConnection.sendNameUpdate(dbid, name);
+
+                    }
 
                     Gson gson = new Gson();
                     String json = gson.toJson(person);
@@ -87,7 +93,11 @@ public class Main {
                     outputToClient.write(data);
                     outputToClient.flush();
 
+                } else {
+                    send404Response(outputToClient);
                 }
+            } else {
+                send404Response(outputToClient);
             }
 
             inputFromClient.close();
@@ -99,6 +109,12 @@ public class Main {
         }
     }
 
+    private static void send404Response(OutputStream outputToClient) throws IOException {
+        String header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
+        outputToClient.write(header.getBytes());
+        outputToClient.flush();
+    }
+
     private static void sendHtmlResponse(OutputStream outputToClient, String type) throws IOException {
         String header = "";
         byte[] data = new byte[0];
@@ -107,7 +123,7 @@ public class Main {
         if (!f.exists() && !f.isDirectory()) {
             header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
         } else {
-            try(FileInputStream fileInputStream = new FileInputStream(f)) {
+            try (FileInputStream fileInputStream = new FileInputStream(f)) {
                 data = new byte[(int) f.length()];
                 fileInputStream.read(data);
                 String contentType = Files.probeContentType(f.toPath());
@@ -182,6 +198,7 @@ public class Main {
             outputToClient.flush();
         }
     }
+
     private static void sendPdfResponse(OutputStream outputToClient, String type) throws IOException {
 
         String header = "";

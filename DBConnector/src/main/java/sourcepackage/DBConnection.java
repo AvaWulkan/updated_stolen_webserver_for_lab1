@@ -2,10 +2,7 @@ package sourcepackage;
 
 import domain.WebserverDbEntity;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +35,19 @@ public class DBConnection {
         em.close();
 
         return x;
+    }
+
+    public static WebserverDbEntity sendNameUpdate(int dbid, String newName) {
+        EntityManager em = emf.createEntityManager();
+        WebserverDbEntity person = sendIdResponse(dbid);
+
+        em.getTransaction().begin();
+        person.setName(newName);
+        em.merge(person);
+        em.getTransaction().commit();
+        em.close();
+
+        return person;
     }
 
 
