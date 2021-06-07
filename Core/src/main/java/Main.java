@@ -58,6 +58,12 @@ public class Main {
                     case "/Laboration1.pdf":
                         sendPdfResponse(outputToClient, type);
                         break;
+
+                    case "/storage":
+                        sendJsonResponse(outputToClient, type);
+                        findById(url, outputToClient);
+
+                        break;
                     default:
                         send404Response(outputToClient);
                         break;
@@ -67,31 +73,6 @@ public class Main {
                     sendJsonResponse(outputToClient, type);
                 } else if (url.startsWith("/storage?id=")) {
 
-
-                    String id = url.replaceAll("[^0-9.]", "");
-                    int dbid = Integer.parseInt(id);
-
-                    WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
-
-                    String parameter = url.split("&")[1];
-
-                    if (parameter.startsWith("changename")) {
-                        String name = parameter.split("=")[1];
-
-                        person = DBConnection.sendNameUpdate(dbid, name);
-
-                    }
-
-                    Gson gson = new Gson();
-                    String json = gson.toJson(person);
-                    System.out.println(json);
-
-                    byte[] data = json.getBytes(StandardCharsets.UTF_8);
-                    String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
-
-                    outputToClient.write(header.getBytes());
-                    outputToClient.write(data);
-                    outputToClient.flush();
 
                 } else {
                     send404Response(outputToClient);
@@ -107,6 +88,33 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void findById(String url, OutputStream outputToClient) throws IOException {
+        String id = url.replaceAll("[^0-9.]", "");
+        int dbid = Integer.parseInt(id);
+
+        WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
+
+        String parameter = url.split("&")[1];
+
+        if (parameter.startsWith("changename")) {
+            String name = parameter.split("=")[1];
+
+            person = DBConnection.sendNameUpdate(dbid, name);
+
+        }
+
+        Gson gson = new Gson();
+        String json = gson.toJson(person);
+        System.out.println(json);
+
+        byte[] data = json.getBytes(StandardCharsets.UTF_8);
+        String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
+
+        outputToClient.write(header.getBytes());
+        outputToClient.write(data);
+        outputToClient.flush();
     }
 
     private static void send404Response(OutputStream outputToClient) throws IOException {
@@ -229,7 +237,6 @@ public class Main {
 
     private static void sendJsonResponse(OutputStream outputToClient, String type) throws IOException {
 
-
         List<WebserverDbEntity> persons = DBConnection.getPeopleFromDb();
 
         Gson gson = new Gson();
@@ -240,7 +247,7 @@ public class Main {
         String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
 
         outputToClient.write(header.getBytes());
-        if (type.equals("GET")) {
+        if (type.equals("GET") || type.equals("POST")) {
             outputToClient.write(data);
             outputToClient.flush();
         }
