@@ -12,6 +12,7 @@
         <module>Client</module>
         <module>Utils</module>
         <module>DBConnector</module>
+        <module>HttpClientModule</module>
     </modules>
     <packaging>pom</packaging>
 
