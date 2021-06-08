@@ -35,34 +35,24 @@ public class HttpClientMain {
             System.out.println("Enter your url (leave empty for database pull):");
             url = sc.nextLine();
 
-            if (url.equals("juan")) {
-                GETdb();
-
-            } else {
-
-                switch (requestType) {
-                    case 1:
-                        GETRequest(url);
-                    case 2:
-                        // HEADRequest(url);
-                    case 3:
-                        // POSTRequest(url);
-                }
+            switch (requestType) {
+                case 1:
+                    GETRequest(url);
+                case 2:
+                    // HEADRequest(url);
+                case 3:
+                    // POSTRequest(url);
             }
 
-            if (url.contains(".")) {
+            if (url.contains(".")) {                                                                                    // stöd för filer, t.ex. dog.jpg
 
                 String[] urlArray = url.split("\\.");
                 int lastInArray = urlArray.length - 1;
-                type = urlArray[lastInArray];
-                System.out.println(urlArray.length);
-                int secondLastInArray = urlArray.length - 2;
-                String fileName = urlArray[secondLastInArray];
-                url = fileName + "." + type;
+                type = urlArray[lastInArray];                                                                           // sista strängen i arrayen separerad med ''.'', t.ex. jpg
 
             }
 
-            switch (type) {
+            switch (type) {                                                                                             // sätter type till rätt HTTP Content Type
 
                 case "png":
                     type = "image/png";
@@ -90,25 +80,6 @@ public class HttpClientMain {
         }
     }
 
-    private static void GETdb() throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .GET()
-                .header("accept", type)
-                .uri(URI.create("http://localhost/storage"))
-                .build();
-        HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
-
-        if (url.equals("/storage")) {
-            ObjectMapper mapper = new ObjectMapper();
-            List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
-            });
-
-            posts.forEach(System.out::println);
-        }
-    }
-
-
     private static void GETRequest(String url) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest getRequest = HttpRequest.newBuilder()
@@ -116,14 +87,25 @@ public class HttpClientMain {
                 .header("accept", type)
                 .uri(URI.create("http://localhost/" + url))
                 .build();
+
         HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+
+        // Allt nedan rör GSON till JSON-konvertering.
+
+        if (url.equals("/storage")) {
 
             ObjectMapper mapper = new ObjectMapper();
             List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
             });
 
             posts.forEach(System.out::println);
+        } else if (url.contains("?")) {
+            ObjectMapper mapper = new ObjectMapper();
+            Person post = mapper.readValue(response.body(), new TypeReference<>() {
+            });
 
+            System.out.println(post);
+        }
 
     }
 }
