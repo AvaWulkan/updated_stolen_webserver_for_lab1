@@ -30,11 +30,11 @@ public class DBConnection {
         TypedQuery<WebserverDbEntity> query = em.createQuery("SELECT a FROM WebserverDbEntity a WHERE a.id=:id", WebserverDbEntity.class);
         query.setParameter("id", id);
 
-        WebserverDbEntity x = query.getSingleResult();
+        WebserverDbEntity person = query.getSingleResult();
 
         em.close();
 
-        return x;
+        return person;
     }
 
     public static WebserverDbEntity sendNameUpdate(int dbid, String newName) {
