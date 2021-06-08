@@ -15,6 +15,9 @@ import java.util.concurrent.Executors;
 
 public class Main {
 
+    static String url = "";
+    static String type = "";
+
     public static void main(String[] args) {
 
 
@@ -38,33 +41,21 @@ public class Main {
 
             BufferedReader inputFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             String inputHeader = readRequest(inputFromClient);
-            String type = inputHeader.split(" ")[0];
-            String url = inputHeader.split(" ")[1];
+            type = inputHeader.split(" ")[0];
+            url = inputHeader.split(" ")[1];
 
             OutputStream outputToClient = client.getOutputStream();
 
 
             if (type.equals("GET") || type.equals("HEAD")) {
-                switch (url) {
-                    case "/cat.png":
-                        sendImageResponse(outputToClient, type);
-                        break;
-                    case "/dog.jpg":
-                        sendDogImageResponse(outputToClient, type);
-                        break;
-                    case "/index.html":
-                        sendHtmlResponse(outputToClient, type);
-                        break;
-                    case "/Laboration1.pdf":
-                        sendPdfResponse(outputToClient, type);
-                        break;
-                    case "/storage":
+                if (url.contains("storage")) {
+                    if (url.startsWith("/storage?id=")) {
+                        findById(url,outputToClient, type);
+                    } else if (url.equals("/storage")) {
                         sendJsonResponse(outputToClient, type);
-                        break;
-                    default:
-                        send404Response(outputToClient);
-                        break;
+                    }
                 }
+                sendGETResponse(outputToClient, type);
             } else if (type.equals("POST")) {
                 if (url.startsWith("/storage?id=")) {
                     findById(url, outputToClient, type);
@@ -115,11 +106,11 @@ public class Main {
         outputToClient.flush();
     }
 
-    private static void sendHtmlResponse(OutputStream outputToClient, String type) throws IOException {
+    private static void sendGETResponse(OutputStream outputToClient, String type) throws IOException {
         String header = "";
         byte[] data = new byte[0];
 
-        File f = Path.of("Core", "target", "web", "index.html").toFile();
+        File f = Path.of("Core", "target", "web", url).toFile();
         if (!f.exists() && !f.isDirectory()) {
             header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
         } else {
@@ -138,93 +129,6 @@ public class Main {
             outputToClient.flush();
         }
 
-    }
-
-
-    private static void sendDogImageResponse(OutputStream outputToClient, String type) throws IOException {
-
-        String header = "";
-        byte[] data = new byte[0];
-
-        File f = Path.of("Core", "target", "web", "dog.jpg").toFile();
-        if (!f.exists() && !f.isDirectory()) {
-            header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
-        } else {
-
-            try (FileInputStream fileInputStream = new FileInputStream(f)) {
-
-                data = new byte[(int) f.length()];
-                fileInputStream.read(data);
-                String contentType = Files.probeContentType(f.toPath());
-                header = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-length: " + data.length + "\r\n\r\n";
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        outputToClient.write(header.getBytes());
-        if (type.equals("GET")) {
-            outputToClient.write(data);
-            outputToClient.flush();
-        }
-    }
-
-
-    private static void sendImageResponse(OutputStream outputToClient, String type) throws IOException {
-
-        String header = "";
-        byte[] data = new byte[0];
-
-        File f = Path.of("Core", "target", "web", "cat.png").toFile();
-        if (!f.exists() && !f.isDirectory()) {
-            header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
-        } else {
-
-            try (FileInputStream fileInputStream = new FileInputStream(f)) {
-
-                data = new byte[(int) f.length()];
-                fileInputStream.read(data);
-                String contentType = Files.probeContentType(f.toPath());
-                header = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-length: " + data.length + "\r\n\r\n";
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            }
-        }
-        outputToClient.write(header.getBytes());
-        if (type.equals("GET")) {
-            outputToClient.write(data);
-            outputToClient.flush();
-        }
-    }
-
-    private static void sendPdfResponse(OutputStream outputToClient, String type) throws IOException {
-
-        String header = "";
-        byte[] data = new byte[0];
-
-        Path f = Paths.get("Core/target/web/Laboration1.pdf");
-        if (f.getFileName() == null) {
-            header = "HTTP/1.1 404 Not Found\r\nContent-length: 0\r\n\r\n";
-        } else {
-
-            try (FileInputStream fileInputStream = new FileInputStream(String.valueOf(f))) {
-
-                data = Files.readAllBytes(f);
-                fileInputStream.read(data);
-                String contentType = Files.probeContentType(f);
-                header = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-length: " + data.length + "\r\n\r\n";
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            }
-        }
-        outputToClient.write(header.getBytes());
-        if (type.equals("GET")) {
-            outputToClient.write(data);
-            outputToClient.flush();
-        }
     }
 
     private static void sendJsonResponse(OutputStream outputToClient, String type) throws IOException {
