@@ -2,9 +2,7 @@ package sources;
 
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -116,16 +114,16 @@ public class HttpClientMain {
 
             System.out.println(post);
 
-        } else if (fileExtension.equals("png") || (fileExtension.equals("jpg"))) {
+        } else if (url.contains(".")) {
             HttpResponse<byte[]> response = client.send(getRequest, HttpResponse.BodyHandlers.ofByteArray());
 
             if (200 == response.statusCode()) {
                 byte[] bytes = response.body();
 
-                ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-                BufferedImage bImage2 = ImageIO.read(bis);
-                ImageIO.write(bImage2, fileExtension, new File(url));
-                System.out.println("image created");
+                try (OutputStream out = new FileOutputStream(url)) {
+                    out.write(bytes);
+                }
+
             }
 
 
