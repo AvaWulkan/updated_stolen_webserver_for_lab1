@@ -87,11 +87,14 @@ public class HttpClientMain {
                 case 1:
                     urlType = "GET";
                     GETAndHEADRequest(url, urlType);
+                    break;
                 case 2:
                     urlType = "HEAD";
                     GETAndHEADRequest(url, urlType);
+                    break;
                 case 3:
                     POSTRequest(randomMap);
+                    break;
             }
 
 
@@ -109,32 +112,41 @@ public class HttpClientMain {
 
         if (url.equals("storage")) {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
-            if(urlType.equals("HEAD")) System.out.println(response.headers());
+            if (urlType.equals("HEAD")) {
+                System.out.println(response.headers());
+            } else {
 
-            ObjectMapper mapper = new ObjectMapper();
-            List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
-            });
+                ObjectMapper mapper = new ObjectMapper();
+                List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
+                });
 
-            posts.forEach(System.out::println);
+                posts.forEach(System.out::println);
+            }
         } else if (url.contains("?")) {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
-            if(urlType.equals("HEAD")) System.out.println(response.headers());
+            if (urlType.equals("HEAD")) {
+                System.out.println(response.headers());
+            } else {
 
-            ObjectMapper mapper = new ObjectMapper();
-            Person post = mapper.readValue(response.body(), new TypeReference<>() {
-            });
+                ObjectMapper mapper = new ObjectMapper();
+                Person post = mapper.readValue(response.body(), new TypeReference<>() {
+                });
 
-            System.out.println(post);
+                System.out.println(post);
+            }
 
         } else if (url.contains(".")) {
             HttpResponse<byte[]> response = client.send(getRequest, HttpResponse.BodyHandlers.ofByteArray());
-            if(urlType.equals("HEAD")) System.out.println(response.headers());
+            if (urlType.equals("HEAD")) {
+                System.out.println(response.headers());
+            } else {
 
-            if (200 == response.statusCode()) {
-                byte[] bytes = response.body();
+                if (200 == response.statusCode()) {
+                    byte[] bytes = response.body();
 
-                try (OutputStream out = new FileOutputStream(url)) {
-                    out.write(bytes);
+                    try (OutputStream out = new FileOutputStream(url)) {
+                        out.write(bytes);
+                    }
                 }
             }
         }
