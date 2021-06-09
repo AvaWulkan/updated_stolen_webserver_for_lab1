@@ -8,8 +8,11 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +45,6 @@ public class HttpClientMain {
 
                 String[] urlArray = url.split("\\.");
                 int lastInArray = urlArray.length - 1;
-                // sparar type så att vi kan använda den för att hämta filer i metoder
                 type = urlArray[lastInArray];
                 fileExtension = type;
 
@@ -73,6 +75,13 @@ public class HttpClientMain {
                     break;
             }
 
+            Map<String, String> randomMap = new HashMap<String, String>();
+
+            randomMap.put("changename", "newName");
+            System.out.println(randomMap);
+
+
+
 
             switch (requestType) {
                 case 1:
@@ -80,7 +89,7 @@ public class HttpClientMain {
                 case 2:
                     // HEADRequest(url);
                 case 3:
-                    // POSTRequest(url);
+                     POSTRequest(randomMap);
             }
 
 
@@ -97,20 +106,18 @@ public class HttpClientMain {
                 .build();
 
 
-        if (url.equals("/storage")) {
+        if (url.equals("storage")) {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
 
             ObjectMapper mapper = new ObjectMapper();
-            List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
-            });
+            List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {});
 
             posts.forEach(System.out::println);
         } else if (url.contains("?")) {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
 
             ObjectMapper mapper = new ObjectMapper();
-            Person post = mapper.readValue(response.body(), new TypeReference<>() {
-            });
+            Person post = mapper.readValue(response.body(), new TypeReference<>() {});
 
             System.out.println(post);
 
@@ -130,6 +137,25 @@ public class HttpClientMain {
         }
 
 
+    }
+
+    public static CompletableFuture<Void> POSTRequest(Map<String,String> map) throws IOException
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(map);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .uri(URI.create("http://localhost/" + url))
+                .build();
+
+        return HttpClient.newHttpClient()
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::statusCode)
+                .thenAccept(System.out::println);
     }
 
 

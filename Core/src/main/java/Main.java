@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,7 +49,7 @@ public class Main {
             if (type.equals("GET") || type.equals("HEAD")) {
                 if (url.contains("storage")) {
                     if (url.startsWith("/storage?id=")) {
-                        findById(url,outputToClient, type);
+                        findById(url, outputToClient, type);
                     } else if (url.equals("/storage")) {
                         sendJsonResponse(outputToClient, type);
                     }
@@ -58,7 +57,9 @@ public class Main {
                 sendGETResponse(outputToClient, type);
             } else if (type.equals("POST")) {
                 if (url.startsWith("/storage?id=")) {
+                    String requestBody = createRequestBody(inputFromClient);
                     findById(url, outputToClient, type);
+                    System.out.println(requestBody);
                 }
             } else {
                 send404Response(outputToClient);
@@ -74,20 +75,19 @@ public class Main {
     }
 
     private static void findById(String url, OutputStream outputToClient, String type) throws IOException {
-        String id = url.replaceAll("[^0-9.]", "");
-        int dbid = Integer.parseInt(id);
+            String id = url.replaceAll("[^0-9.]", "");
+            int dbid = Integer.parseInt(id);
 
-        WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
-        String parameter = "";
-        if (url.contains("&")) {
-            parameter = url.split("&")[1];
-        }
-        if (parameter.startsWith("changename")) {
-            String name = parameter.split("=")[1];
+            WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
+            String parameter = "";
+            if (url.contains("&")) {
+                parameter = url.split("&")[1];
+            }
+            if (parameter.startsWith("changename")) {
+                String name = parameter.split("=")[1];
 
-            person = DBConnection.sendNameUpdate(dbid, name);
-        }
-
+                person = DBConnection.sendNameUpdate(dbid, name);
+            }
         Gson gson = new Gson();
         String json = gson.toJson(person);
         System.out.println(json);
@@ -166,10 +166,30 @@ public class Main {
                 url = line.split(" ")[1];
 
             } else if (line.startsWith("POST")) {
+                //createRequestBody(inputFromClient);
                 type = "POST";
                 url = line.split(" ")[1];
+
             }
             return type + " " + url;
         }
+    }
+
+    private static String createRequestBody(BufferedReader inputFromClient) throws IOException {
+        StringBuffer buffer = new StringBuffer();
+        String string = null;
+        int bodyLength = 0;
+        while (!(string = inputFromClient.readLine()).equals("")) {
+            buffer.append(string + "");
+            if (string.startsWith("Content-Length:")) {
+                bodyLength = Integer.valueOf(string.substring(string.indexOf(' ') + 1, string.length()));
+            }
+        }
+        char[] body = new char[bodyLength];
+        inputFromClient.read(body, 0, bodyLength);
+        String requestBody = new String(body);
+        String nameValue = requestBody.split(":")[1];
+        nameValue = nameValue.split("\"")[1];
+        return nameValue;
     }
 }
