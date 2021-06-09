@@ -183,6 +183,11 @@ public class Main {
                 url = line.split(" ")[1];
 
             }
+            if(url.endsWith("/")){
+                StringBuffer sb= new StringBuffer(url);
+                sb.deleteCharAt(sb.length()-1);
+                url = sb.toString();
+            }
             return type + " " + url;
         }
     }
