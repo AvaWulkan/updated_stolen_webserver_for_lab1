@@ -77,11 +77,14 @@ public class HttpClientMain {
 
             Map<String, String> randomMap = new HashMap<String, String>();
 
-            randomMap.put("changename", "newName");
-            System.out.println(randomMap);
-
-
-
+            String parameter = "";
+            if (url.contains("&")) {
+                parameter = url.split("&")[1];
+            }
+            if (parameter.startsWith("changename")) {
+                String userNameInput = parameter.split("=")[1];
+                randomMap.put("changename", userNameInput);
+            }
 
             switch (requestType) {
                 case 1:
@@ -89,9 +92,8 @@ public class HttpClientMain {
                 case 2:
                     // HEADRequest(url);
                 case 3:
-                     POSTRequest(randomMap);
+                    POSTRequest(randomMap);
             }
-
 
 
         }
@@ -110,14 +112,16 @@ public class HttpClientMain {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
 
             ObjectMapper mapper = new ObjectMapper();
-            List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {});
+            List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
+            });
 
             posts.forEach(System.out::println);
         } else if (url.contains("?")) {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
 
             ObjectMapper mapper = new ObjectMapper();
-            Person post = mapper.readValue(response.body(), new TypeReference<>() {});
+            Person post = mapper.readValue(response.body(), new TypeReference<>() {
+            });
 
             System.out.println(post);
 
@@ -139,8 +143,7 @@ public class HttpClientMain {
 
     }
 
-    public static CompletableFuture<Void> POSTRequest(Map<String,String> map) throws IOException
-    {
+    public static CompletableFuture<Void> POSTRequest(Map<String, String> map) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper
                 .writerWithDefaultPrettyPrinter()

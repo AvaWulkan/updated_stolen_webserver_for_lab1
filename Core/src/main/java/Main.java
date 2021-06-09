@@ -57,9 +57,8 @@ public class Main {
                 sendGETResponse(outputToClient, type);
             } else if (type.equals("POST")) {
                 if (url.startsWith("/storage?id=")) {
-                    String requestBody = createRequestBody(inputFromClient);
-                    findById(url, outputToClient, type);
-                    System.out.println(requestBody);
+                    String nameValue = createRequestBody(inputFromClient);
+                    changeNameByIdWithPOST(nameValue, url, outputToClient);
                 }
             } else {
                 send404Response(outputToClient);
@@ -74,20 +73,33 @@ public class Main {
         }
     }
 
+    private static void changeNameByIdWithPOST(String nameValue, String url, OutputStream outputToClient) throws IOException {
+        String id = url.replaceAll("[^0-9.]", "");
+        int dbid = Integer.parseInt(id);
+
+        WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
+
+        person = DBConnection.sendNameUpdate(dbid, nameValue);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(person);
+        System.out.println(json);
+
+        byte[] data = json.getBytes(StandardCharsets.UTF_8);
+        String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
+
+        outputToClient.write(header.getBytes());
+        outputToClient.write(data);
+        outputToClient.flush();
+
+    }
+
     private static void findById(String url, OutputStream outputToClient, String type) throws IOException {
-            String id = url.replaceAll("[^0-9.]", "");
-            int dbid = Integer.parseInt(id);
+        String id = url.replaceAll("[^0-9.]", "");
+        int dbid = Integer.parseInt(id);
 
-            WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
-            String parameter = "";
-            if (url.contains("&")) {
-                parameter = url.split("&")[1];
-            }
-            if (parameter.startsWith("changename")) {
-                String name = parameter.split("=")[1];
+        WebserverDbEntity person = DBConnection.sendIdResponse(dbid);
 
-                person = DBConnection.sendNameUpdate(dbid, name);
-            }
         Gson gson = new Gson();
         String json = gson.toJson(person);
         System.out.println(json);
