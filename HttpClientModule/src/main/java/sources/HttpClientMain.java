@@ -1,6 +1,9 @@
 package sources;
 
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,9 +13,10 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Scanner;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import javax.imageio.ImageIO;
 
 public class HttpClientMain {
 
@@ -20,6 +24,7 @@ public class HttpClientMain {
     static String url = "";
     static boolean loop = true;
     static Scanner sc = new Scanner(System.in);
+    static String fileExtension = "";
 
     public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException {
 
@@ -35,30 +40,23 @@ public class HttpClientMain {
             System.out.println("Enter your url (leave empty for database pull):");
             url = sc.nextLine();
 
-            switch (requestType) {
-                case 1:
-                    GETRequest(url);
-                case 2:
-                    // HEADRequest(url);
-                case 3:
-                    // POSTRequest(url);
-            }
-
-            if (url.contains(".")) {                                                                                    // stöd för filer, t.ex. dog.jpg
+            if (url.contains(".")) {
 
                 String[] urlArray = url.split("\\.");
                 int lastInArray = urlArray.length - 1;
-                type = urlArray[lastInArray];                                                                           // sista strängen i arrayen separerad med ''.'', t.ex. jpg
+                // sparar type så att vi kan använda den för att hämta filer i metoder
+                type = urlArray[lastInArray];
+                fileExtension = type;
 
             }
 
-            switch (type) {                                                                                             // sätter type till rätt HTTP Content Type
+            switch (type) {
 
                 case "png":
                     type = "image/png";
                     break;
-                case "img":
-                    type = "image/img";
+                case "jpg":
+                    type = "image/jpg";
                     break;
                 case "html":
                     type = "application/html";
@@ -77,6 +75,18 @@ public class HttpClientMain {
                     break;
             }
 
+
+            switch (requestType) {
+                case 1:
+                    GETRequest(url);
+                case 2:
+                    // HEADRequest(url);
+                case 3:
+                    // POSTRequest(url);
+            }
+
+
+
         }
     }
 
@@ -88,11 +98,9 @@ public class HttpClientMain {
                 .uri(URI.create("http://localhost/" + url))
                 .build();
 
-        HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
-
-        // Allt nedan rör GSON till JSON-konvertering.
 
         if (url.equals("/storage")) {
+            HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
 
             ObjectMapper mapper = new ObjectMapper();
             List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
@@ -100,13 +108,34 @@ public class HttpClientMain {
 
             posts.forEach(System.out::println);
         } else if (url.contains("?")) {
+            HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+
             ObjectMapper mapper = new ObjectMapper();
             Person post = mapper.readValue(response.body(), new TypeReference<>() {
             });
 
             System.out.println(post);
+
+        } else if (fileExtension.equals("png") || (fileExtension.equals("jpg"))) {
+            HttpResponse<byte[]> response = client.send(getRequest, HttpResponse.BodyHandlers.ofByteArray());
+
+            if (200 == response.statusCode()) {
+                byte[] bytes = response.body();
+
+                ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+                BufferedImage bImage2 = ImageIO.read(bis);
+                ImageIO.write(bImage2, fileExtension, new File(url));
+                System.out.println("image created");
+            }
+
+
         }
 
+
     }
+
+
 }
+
+
 
