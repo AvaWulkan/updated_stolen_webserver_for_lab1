@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 public class Main {
 
     static String url = "";
-    static String type = "";
+    static String urlType = "";
 
     public static void main(String[] args) {
         ExecutorService executorService = Executors.newCachedThreadPool();
@@ -37,21 +37,21 @@ public class Main {
         try {
             BufferedReader inputFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             String inputHeader = readRequest(inputFromClient);
-            type = inputHeader.split(" ")[0];
+            urlType = inputHeader.split(" ")[0];
             url = inputHeader.split(" ")[1];
 
             OutputStream outputToClient = client.getOutputStream();
 
-            if (type.equals("GET") || type.equals("HEAD")) {
+            if (urlType.equals("GET") || urlType.equals("HEAD")) {
                 if (url.contains("storage")) {
                     if (url.startsWith("/storage?id=")) {
-                        findById(url, outputToClient, type);
+                        findById(url, outputToClient);
                     } else if (url.equals("/storage")) {
-                        sendJsonResponse(outputToClient, type);
+                        sendJsonResponse(outputToClient, urlType);
                     }
                 }
-                sendGETResponse(outputToClient, type);
-            } else if (type.equals("POST")) {
+                sendGETResponse(outputToClient, urlType);
+            } else if (urlType.equals("POST")) {
                 url = EncodingDecoding.decode(url);
                 if (url.startsWith("/storage?id=")) {
                     String nameValue = createRequestBody(inputFromClient);
@@ -88,7 +88,7 @@ public class Main {
         outputToClient.flush();
     }
 
-    private static void findById(String url, OutputStream outputToClient, String type) throws IOException {
+    private static void findById(String url, OutputStream outputToClient) throws IOException {
         String id = url.replaceAll("[^0-9.]", "");
         int dbid = Integer.parseInt(id);
 
@@ -112,7 +112,7 @@ public class Main {
         outputToClient.flush();
     }
 
-    private static void sendGETResponse(OutputStream outputToClient, String type) throws IOException {
+    private static void sendGETResponse(OutputStream outputToClient, String urlType) throws IOException {
         String header = "";
         byte[] data = new byte[0];
 
@@ -130,13 +130,13 @@ public class Main {
             }
         }
         outputToClient.write(header.getBytes());
-        if (type.equals("GET")) {
+        if (urlType.equals("GET")) {
             outputToClient.write(data);
             outputToClient.flush();
         }
     }
 
-    private static void sendJsonResponse(OutputStream outputToClient, String type) throws IOException {
+    private static void sendJsonResponse(OutputStream outputToClient, String urlType) throws IOException {
         List<WebserverDbEntity> persons = DBConnection.getPeopleFromDb();
 
         Gson gson = new Gson();
@@ -147,7 +147,7 @@ public class Main {
         String header = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-length: " + data.length + "\r\n\r\n";
 
         outputToClient.write(header.getBytes());
-        if (type.equals("GET") || type.equals("POST")) {
+        if (urlType.equals("GET") || urlType.equals("POST")) {
             outputToClient.write(data);
             outputToClient.flush();
         }
@@ -155,19 +155,19 @@ public class Main {
 
 
     private static String readRequest(BufferedReader inputFromClient) throws IOException {
-        String type = "";
+        String urlType = "";
         String url = "";
 
         while (true) {
             String line = inputFromClient.readLine();
             if (line.startsWith("GET")) {
-                type = "GET";
+                urlType = "GET";
                 url = line.split(" ")[1];
             } else if (line.startsWith("HEAD")) {
-                type = "HEAD";
+                urlType = "HEAD";
                 url = line.split(" ")[1];
             } else if (line.startsWith("POST")) {
-                type = "POST";
+                urlType = "POST";
                 url = line.split(" ")[1];
             }
             if(url.endsWith("/")){
@@ -175,7 +175,7 @@ public class Main {
                 sb.deleteCharAt(sb.length()-1);
                 url = sb.toString();
             }
-            return type + " " + url;
+            return urlType + " " + url;
         }
     }
 
