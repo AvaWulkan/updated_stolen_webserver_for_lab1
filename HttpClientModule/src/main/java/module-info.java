@@ -5,6 +5,7 @@ module HttpClientModule {
     requires com.fasterxml.jackson.databind;
     requires java.desktop;
     requires java.net.http;
+    requires Core;
 
 
 }

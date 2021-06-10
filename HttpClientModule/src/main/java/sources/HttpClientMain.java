@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import coresources.EncodingDecoding;
 
 public class HttpClientMain {
 
@@ -72,7 +73,7 @@ public class HttpClientMain {
                     break;
             }
 
-            Map<String, String> randomMap = new HashMap<String, String>();
+            Map<String, String> bodyText = new HashMap<String, String>();
 
             String parameter = "";
             if (url.contains("&")) {
@@ -80,7 +81,7 @@ public class HttpClientMain {
             }
             if (parameter.startsWith("changename")) {
                 String userNameInput = parameter.split("=")[1];
-                randomMap.put("changename", userNameInput);
+                bodyText.put("changename", userNameInput);
             }
             String urlType = "";
             switch (requestType) {
@@ -93,7 +94,7 @@ public class HttpClientMain {
                     GETAndHEADRequest(url, urlType);
                     break;
                 case 3:
-                    POSTRequest(randomMap);
+                    POSTRequest(bodyText);
                     break;
             }
 
@@ -152,11 +153,14 @@ public class HttpClientMain {
         }
     }
 
-    public static CompletableFuture<Void> POSTRequest(Map<String, String> map) throws IOException {
+    public static CompletableFuture<Void> POSTRequest(Map<String, String> bodyText) throws IOException {
+
+
+
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper
                 .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(map);
+                .writeValueAsString(bodyText);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .header("Content-Type", "application/json")

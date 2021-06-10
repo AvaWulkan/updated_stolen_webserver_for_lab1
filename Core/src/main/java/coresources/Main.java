@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+
 public class Main {
 
     static String url = "";
@@ -58,7 +59,9 @@ public class Main {
                 }
                 sendGETResponse(outputToClient, type);
             } else if (type.equals("POST")) {
+                url = EncodingDecoding.decode(url);
                 if (url.startsWith("/storage?id=")) {
+
                     String nameValue = createRequestBody(inputFromClient);
                     changeNameByIdWithPOST(nameValue, url, outputToClient);
                 }
@@ -180,7 +183,6 @@ public class Main {
                 url = line.split(" ")[1];
 
             } else if (line.startsWith("POST")) {
-                //createRequestBody(inputFromClient);
                 type = "POST";
                 url = line.split(" ")[1];
 
