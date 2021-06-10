@@ -14,15 +14,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 public class Main {
 
     static String url = "";
     static String type = "";
 
     public static void main(String[] args) {
-
-
         ExecutorService executorService = Executors.newCachedThreadPool();
 
         try (ServerSocket serverSocket = new ServerSocket(80)) {
@@ -31,23 +28,19 @@ public class Main {
                 Socket client = serverSocket.accept();
                 executorService.submit(() -> handleConnection(client));
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private static void handleConnection(Socket client) {
-
         try {
-
             BufferedReader inputFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             String inputHeader = readRequest(inputFromClient);
             type = inputHeader.split(" ")[0];
             url = inputHeader.split(" ")[1];
 
             OutputStream outputToClient = client.getOutputStream();
-
 
             if (type.equals("GET") || type.equals("HEAD")) {
                 if (url.contains("storage")) {
@@ -61,18 +54,15 @@ public class Main {
             } else if (type.equals("POST")) {
                 url = EncodingDecoding.decode(url);
                 if (url.startsWith("/storage?id=")) {
-
                     String nameValue = createRequestBody(inputFromClient);
                     changeNameByIdWithPOST(nameValue, url, outputToClient);
                 }
             } else {
                 send404Response(outputToClient);
             }
-
             inputFromClient.close();
             outputToClient.close();
             client.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -96,7 +86,6 @@ public class Main {
         outputToClient.write(header.getBytes());
         outputToClient.write(data);
         outputToClient.flush();
-
     }
 
     private static void findById(String url, OutputStream outputToClient, String type) throws IOException {
@@ -145,11 +134,9 @@ public class Main {
             outputToClient.write(data);
             outputToClient.flush();
         }
-
     }
 
     private static void sendJsonResponse(OutputStream outputToClient, String type) throws IOException {
-
         List<WebserverDbEntity> persons = DBConnection.getPeopleFromDb();
 
         Gson gson = new Gson();
@@ -168,7 +155,6 @@ public class Main {
 
 
     private static String readRequest(BufferedReader inputFromClient) throws IOException {
-
         String type = "";
         String url = "";
 
@@ -177,15 +163,12 @@ public class Main {
             if (line.startsWith("GET")) {
                 type = "GET";
                 url = line.split(" ")[1];
-
             } else if (line.startsWith("HEAD")) {
                 type = "HEAD";
                 url = line.split(" ")[1];
-
             } else if (line.startsWith("POST")) {
                 type = "POST";
                 url = line.split(" ")[1];
-
             }
             if(url.endsWith("/")){
                 StringBuffer sb= new StringBuffer(url);

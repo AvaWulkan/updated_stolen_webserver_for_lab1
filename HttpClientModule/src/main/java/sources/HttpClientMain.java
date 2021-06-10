@@ -1,6 +1,5 @@
 package sources;
 
-
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,7 +27,6 @@ public class HttpClientMain {
     public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException {
 
         while (loop) {
-
             System.out.println("Select type of request:");
             System.out.println("1. GET");
             System.out.println("2. HEAD");
@@ -40,16 +38,13 @@ public class HttpClientMain {
             url = sc.nextLine();
 
             if (url.contains(".")) {
-
                 String[] urlArray = url.split("\\.");
                 int lastInArray = urlArray.length - 1;
                 contentType = urlArray[lastInArray];
                 fileExtension = contentType;
-
             }
 
             switch (contentType) {
-
                 case "png":
                     contentType = "image/png";
                     break;
@@ -97,8 +92,6 @@ public class HttpClientMain {
                     POSTRequest(bodyText);
                     break;
             }
-
-
         }
     }
 
@@ -110,17 +103,14 @@ public class HttpClientMain {
                 .uri(URI.create("http://localhost/" + url))
                 .build();
 
-
         if (url.equals("storage")) {
             HttpResponse<String> response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
             if (urlType.equals("HEAD")) {
                 System.out.println(response.headers());
             } else {
-
                 ObjectMapper mapper = new ObjectMapper();
                 List<Person> posts = mapper.readValue(response.body(), new TypeReference<>() {
                 });
-
                 posts.forEach(System.out::println);
             }
         } else if (url.contains("?")) {
@@ -128,11 +118,9 @@ public class HttpClientMain {
             if (urlType.equals("HEAD")) {
                 System.out.println(response.headers());
             } else {
-
                 ObjectMapper mapper = new ObjectMapper();
                 Person post = mapper.readValue(response.body(), new TypeReference<>() {
                 });
-
                 System.out.println(post);
             }
 
@@ -141,10 +129,8 @@ public class HttpClientMain {
             if (urlType.equals("HEAD")) {
                 System.out.println(response.headers());
             } else {
-
                 if (200 == response.statusCode()) {
                     byte[] bytes = response.body();
-
                     try (OutputStream out = new FileOutputStream(url)) {
                         out.write(bytes);
                     }
@@ -154,9 +140,6 @@ public class HttpClientMain {
     }
 
     public static CompletableFuture<Void> POSTRequest(Map<String, String> bodyText) throws IOException {
-
-
-
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper
                 .writerWithDefaultPrettyPrinter()
@@ -173,8 +156,6 @@ public class HttpClientMain {
                 .thenApply(HttpResponse::statusCode)
                 .thenAccept(System.out::println);
     }
-
-
 }
 
 
