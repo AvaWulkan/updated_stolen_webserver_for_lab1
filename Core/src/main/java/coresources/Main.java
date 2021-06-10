@@ -1,3 +1,5 @@
+package coresources;
+
 import com.google.gson.Gson;
 import domain.WebserverDbEntity;
 import sourcepackage.DBConnection;

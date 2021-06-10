@@ -1,4 +1,4 @@
-
+package coresources;
 
 public class Person {
 
